@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Cloned upstream frameworks — not our code, re-clone per README instead
+SWE-bench/
+swe-bench-tasks/
+
+# Per-instance target-repo clones (large, and each is its own nested git repo);
+# predictions.jsonl / prompt.txt / claude_stream.jsonl next to them are kept
+runs/*/repo/
