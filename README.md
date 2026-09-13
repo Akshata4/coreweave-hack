@@ -40,6 +40,59 @@ tooling throughout: every trace lives in W&B Weave, and the in-progress sandboxi
 (see below) runs the agent's full tool-use harness fully isolated, authenticated purely
 through W&B Inference credits — no Anthropic API key needed inside the sandbox at all.
 
+## Sponsor tools & protocols used
+
+### Sponsor tools
+
+- **[Claude Code](https://claude.com/claude-code)** (Anthropic) — the coding agent itself.
+  Run headlessly (`claude -p --output-format stream-json`) by `agent_predict.py`, restricted
+  to a small tool allow-list (`Read Edit Write Grep Glob` plus whatever `agent_config.json`
+  currently grants) so every permission it has is explicit and auditable.
+- **[W&B Weave](https://wandb.ai/site/weave)** — the tracing backbone for the whole system,
+  on two surfaces at once: the **Calls** call-tree (`run_instance → agent_session →
+  agent_turn → tool_call`, via `@weave.op()`) and the **Agents/Conversations** view
+  (`weave.start_conversation` / `start_turn` / `start_tool` / `log_conversation`), which logs
+  both the coding agent's transcript and the improve loop's own round-by-round decisions as
+  readable, replayable conversations. Also used for **Weave Feedback**
+  (`call.feedback.add`), which is how `blue_agent.py`'s verdict gets attached directly to
+  the run it audited.
+- **[W&B Inference](https://wandb.ai/site/inference)** — an OpenAI-compatible endpoint
+  (`api.inference.wandb.ai`) serving open models. `inference_proxy.py` proves Claude Code's
+  full tool-use harness can run on a W&B Inference model (`moonshotai/Kimi-K2.7-Code`)
+  instead of a real Claude model, authenticated purely by `WANDB_API_KEY` — no Anthropic
+  credential needed at all. This is the primitive the in-progress sandboxed general-fix
+  extension is built on.
+- **W&B hosted MCP server** (`mcp.withwandb.com`) — used throughout development (not by the
+  running pipeline itself) to query and inspect real Weave traces directly from the editor —
+  pulling conversations, call trees, and feedback to debug the loop and verify the exact
+  numbers used in the demo.
+- **[CoreWeave Docker Sandboxes](https://www.docker.com/products/docker-sandboxes/)**
+  (`sbx` CLI) — isolated microVM sandboxes with default-deny networking
+  (`sbx policy allow network --sandbox <name> <domain>`), used to run Claude Code's full
+  tool-use harness — real Bash included — fully isolated. This is where the improve loop's
+  planned "test the fix in a sandbox before trusting it" step is being built.
+
+### Agent protocols
+
+- **[Model Context Protocol (MCP)](https://modelcontextprotocol.io/)** — the protocol behind
+  the hosted W&B MCP server above; Claude Code (in this session, doing the project's own
+  development) calls its tools (query traces, pull a conversation, list runs) as standard
+  MCP tool calls.
+- **Anthropic Messages API / tool-use protocol** — Claude Code's native format for tool calls
+  and results (`tool_use` / `tool_result` content blocks, streamed as `stream-json` events).
+  `agent_predict.py` parses this stream directly to classify every tool call's `outcome`
+  (`success` / `error` / `permission_denied` / `unknown`).
+- **OpenAI-compatible Chat Completions protocol** — what W&B Inference actually speaks.
+  `inference_proxy.py` is a bidirectional translator between this and the Anthropic Messages
+  protocol above (request shape, tool-call format, and streaming SSE events in both
+  directions), which is what lets an Anthropic-protocol client (Claude Code) run unmodified
+  against a W&B Inference model.
+- **Weave's Agent/Conversation schema** — a structured logging protocol
+  (`start_conversation` → `start_turn` → `start_tool`/`log` → end) distinct from Weave's raw
+  op call-tree; used to represent both the coding agent's run and the improve loop's own
+  audit → fix → regression-check → re-run decisions as a single readable conversation instead
+  of raw nested spans.
+
 ## The three scripts
 
 **`agent_predict.py`** — the coding agent, per instance:
