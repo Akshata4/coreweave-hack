@@ -63,7 +63,7 @@ through W&B Inference credits — no Anthropic API key needed inside the sandbox
   running pipeline itself) to query and inspect real Weave traces directly from the editor —
   pulling conversations, call trees, and feedback to debug the loop and verify the exact
   numbers used in the demo.
-- **[CoreWeave Docker Sandboxes](https://www.docker.com/products/docker-sandboxes/)**
+- **[Docker Sandboxes](https://www.docker.com/products/docker-sandboxes/)**
   (`sbx` CLI) — isolated microVM sandboxes with default-deny networking
   (`sbx policy allow network --sandbox <name> <domain>`), used to run Claude Code's full
   tool-use harness — real Bash included — fully isolated. This is where the improve loop's
