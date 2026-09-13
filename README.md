@@ -44,10 +44,7 @@ through W&B Inference credits — no Anthropic API key needed inside the sandbox
 
 ### Sponsor tools
 
-- **[Claude Code](https://claude.com/claude-code)** (Anthropic) — the coding agent itself.
-  Run headlessly (`claude -p --output-format stream-json`) by `agent_predict.py`, restricted
-  to a small tool allow-list (`Read Edit Write Grep Glob` plus whatever `agent_config.json`
-  currently grants) so every permission it has is explicit and auditable.
+
 - **[W&B Weave](https://wandb.ai/site/weave)** — the tracing backbone for the whole system,
   on two surfaces at once: the **Calls** call-tree (`run_instance → agent_session →
   agent_turn → tool_call`, via `@weave.op()`) and the **Agents/Conversations** view
