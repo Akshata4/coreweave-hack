@@ -12,3 +12,9 @@ swe-bench-tasks/
 # actual system of record.
 runs/
 logs/
+
+# improve_agent.py's mutable state — a missing agent_config.json behaves like
+# the empty/baseline config, and the round-by-round history it mutates through
+# is also fully captured in Weave (the improve-loop-<instance_id> conversation).
+agent_config.json
+agent_config_history/

@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 """
+FROZEN BASELINE SNAPSHOT — not imported or run by anything else in this repo.
+
+This is the "basic coding agent" reference point for the improvement-loop demo
+(improve_agent.py): a copy of agent_predict.py taken before it gained
+agent_config.json support. Kept as-is on purpose so a demo can always show
+"here's where it started" without needing to regenerate it. The live pipeline
+lives in agent_predict.py — edit that one, not this one.
+
 Generate a SWE-bench prediction by letting the local `claude` CLI (Claude Code)
 fix a real GitHub issue inside a fresh clone of the target repo, run the
 SWE-bench Docker eval harness on the resulting patch, and trace the whole
@@ -49,33 +57,13 @@ from weave.conversation import Message, Usage
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
 AKSHATA_ENV_FILE = ROOT / ".env"
-AGENT_CONFIG_FILE = ROOT / "agent_config.json"
 WEAVE_PROJECT = "swebench-claude-code-tracing"
-BASE_ALLOWED_TOOLS = "Read Edit Write Grep Glob"  # no Bash — deliberately reverted so the
-# improve loop has a real gap to find and close on its own via agent_config.json;
-# see improve_agent.py's REMEDIATIONS["broaden_bash_pattern"] for what it grants back
+ALLOWED_TOOLS = (
+    "Read Edit Write Grep Glob "
+    "Bash(python -c *) Bash(python3 -c *) Bash(pytest *)"
+)  # Bash scoped to verification-only prefixes; anything else (rm, sudo, curl, git push,
+   # shell chaining, ...) still falls outside the allow-list and gets denied like before
 MAX_OUTPUT_CHARS = 20_000  # keep individual trace payloads sane
-
-
-def _load_agent_config() -> dict:
-    """Read agent_config.json — the only thing improve_agent.py is allowed to edit.
-
-    This is how a fix gets applied: not by patching this script's source, but by
-    adding an entry here, which _effective_allowed_tools()/run_instance() below
-    fold in at runtime. Missing file or missing keys default to "no changes yet",
-    so a fresh checkout behaves identically to agent_predict_baseline.py.
-    """
-    if not AGENT_CONFIG_FILE.exists():
-        return {"allowed_tools_extra": [], "prompt_hints": []}
-    config = json.loads(AGENT_CONFIG_FILE.read_text())
-    config.setdefault("allowed_tools_extra", [])
-    config.setdefault("prompt_hints", [])
-    return config
-
-
-def _effective_allowed_tools(config: dict) -> str:
-    extra = " ".join(config["allowed_tools_extra"])
-    return f"{BASE_ALLOWED_TOOLS} {extra}".strip()
 
 
 def _load_akshata_wandb_key():
@@ -234,15 +222,14 @@ def _log_agent_conversation(instance_id: str, prompt: str, turns: list):
 
 
 @weave.op()
-def agent_session(instance_id: str, prompt: str, repo_dir: str, run_dir: str, model: str = None,
-                   allowed_tools: str = BASE_ALLOWED_TOOLS) -> dict:
+def agent_session(instance_id: str, prompt: str, repo_dir: str, run_dir: str, model: str = None) -> dict:
     """Run Claude Code headlessly against the repo clone, tracing every turn and tool call."""
     cmd = [
         "claude", "-p", prompt,
         "--output-format", "stream-json",
         "--verbose",
         "--permission-mode", "acceptEdits",
-        "--allowedTools", allowed_tools,
+        "--allowedTools", ALLOWED_TOOLS,
     ]
     if model:
         cmd += ["--model", model]
@@ -330,16 +317,13 @@ def run_instance(instance_id: str, dataset: str, split: str, run_label: str, mod
     sh(["git", "clone", f"https://github.com/{inst['repo']}.git", str(repo_dir)])
     sh(["git", "checkout", inst["base_commit"]], cwd=repo_dir)
 
-    config = _load_agent_config()
-    hints = "".join(f"\n{h}" for h in config["prompt_hints"])
-
     prompt = f"""You are fixing a real GitHub issue in this repository ({inst['repo']}).
 
 Read the problem statement below, find the root cause in the codebase, and make
 the minimal source code change that fixes it. Do not add new tests, do not touch
 test files, do not run the test suite, and do not create commits — just edit the
 source files needed to fix the bug.
-{hints}
+
 --- PROBLEM STATEMENT ---
 {inst['problem_statement']}
 --- END PROBLEM STATEMENT ---
@@ -348,10 +332,7 @@ When you are done, stop; do not summarize.
 """
     (run_dir / "prompt.txt").write_text(prompt)
 
-    session = agent_session(
-        instance_id, prompt, str(repo_dir), str(run_dir), model,
-        allowed_tools=_effective_allowed_tools(config),
-    )
+    session = agent_session(instance_id, prompt, str(repo_dir), str(run_dir), model)
 
     if session.get("returncode") != 0:
         print(f"claude exited with code {session['returncode']}; see {run_dir}/claude_stderr.log", file=sys.stderr)
