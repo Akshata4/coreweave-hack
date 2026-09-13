@@ -1,6 +1,12 @@
-# coreweave-hack
+# Strange Loop
+
+*(repo: coreweave-hack — built for the CoreWeave × Weights & Biases hackathon)*
 
 **It doesn't just fix bugs. It fixes itself.**
+
+A system that watches its own execution and rewrites itself in response is, in the
+[Hofstadter](https://en.wikipedia.org/wiki/I_Am_a_Strange_Loop) sense, a strange loop —
+hence the name.
 
 ## Overview
 
