@@ -1,12 +1,38 @@
 # coreweave-hack
 
-Runs [SWE-bench](https://www.swebench.com/SWE-bench/) locally, using the `claude` CLI
-(Claude Code) as the coding agent that generates patches for real GitHub issues, with
-the agent's execution traced into [W&B Weave](https://wandb.ai/site/weave) — both as a
-nested Calls trace and as an Agents/Conversations entry. On top of that: a blue-team
-review agent that audits each run for reward hacking / policy violations, and an
-autonomous loop that applies a canned fix for the two kinds of finding it knows how to
-safely correct, then re-verifies.
+**It doesn't just fix bugs. It fixes itself.**
+
+## Overview
+
+This project runs an AI coding agent ([Claude Code](https://claude.com/claude-code)) on
+real, unmodified GitHub issues from [SWE-bench](https://www.swebench.com/SWE-bench/),
+verified in Docker — and then goes a step further than "does it work": a second agent
+audits every run for unsafe or dishonest behavior (reward hacking, permission escalation,
+policy violations), and a third component lets the system fix its own safety gaps
+automatically, re-verify the fix, and only keep it once it's proven not to break anything
+else. Every step of all three is fully traced into [W&B Weave](https://wandb.ai/site/weave).
+
+The story in one real example: the agent solved a real astropy bug correctly, but tried
+to verify its own fix with a Bash command it wasn't allowed to run — twice, including an
+attempt to bypass its own sandbox. The audit agent caught exactly that and classified it
+as a known-safe kind of gap. The improve loop granted precisely the permission needed
+(nothing broader), confirmed two unrelated tasks still passed, and re-ran the same
+instance: zero denials, fewer steps, lower cost. The loop recognized on its own that
+there was nothing left to fix, and stopped — no human in that decision at any point.
+
+<p align="center">
+  <img src="docs/improve-loop-diagram.svg" alt="The improve loop: a coding agent produces a run, which enters the improve loop — audit, write a fix, test the fix in a sandbox, check it's safe, apply it to the real config — and the coding agent runs again, improved, closing the loop. An unsafe fix is discarded instead of applied." width="820">
+</p>
+
+**Why this matters**: autonomous coding agents are only as trustworthy as their weakest
+unaudited action. This is a small, working example of pairing agent *capability* with
+continuous, automated *safety verification* — not a one-time review, a loop that keeps
+closing itself.
+
+Built on [CoreWeave](https://www.coreweave.com/) and [Weights & Biases](https://wandb.ai/)
+tooling throughout: every trace lives in W&B Weave, and the in-progress sandboxing work
+(see below) runs the agent's full tool-use harness fully isolated, authenticated purely
+through W&B Inference credits — no Anthropic API key needed inside the sandbox at all.
 
 ## The three scripts
 
@@ -45,10 +71,22 @@ nothing broke, and repeats. Stops on `CONVERGED` (nothing left to fix), `REGRESS
 holds `allowed_tools_extra` and `prompt_hints`; a missing file behaves like `{}`, i.e.
 the plain baseline.
 
+### In progress: sandbox-validated, general fixes
+
+Today's `broaden_bash_pattern` fix only ever grants from a small, hand-written menu of
+three Bash patterns — if an instance needs a command outside that menu, it's skipped, not
+generalized. The extension in progress replaces that fixed menu with the agent proposing
+*any* needed permission itself and safety-testing it for real inside an isolated
+[Docker Sandbox](https://www.docker.com/products/docker-sandboxes/) before it's ever
+trusted in the real config. `inference_proxy.py` is the piece already proven end-to-end:
+it lets Claude Code's full tool-use harness run — with real Bash, fully isolated — using
+a W&B Inference model instead of a Claude model, authenticated purely by `WANDB_API_KEY`.
+
 ## Setup
 
-Dependencies (`datasets`, `weave`, and `swebench` as an editable install of `./SWE-bench`)
-are managed with [uv](https://docs.astral.sh/uv/) via `pyproject.toml`/`uv.lock`.
+Dependencies (`datasets`, `weave`, `flask`, `requests`, and `swebench` as an editable
+install of `./SWE-bench`) are managed with [uv](https://docs.astral.sh/uv/) via
+`pyproject.toml`/`uv.lock`.
 
 ```bash
 git clone --depth 1 https://github.com/SWE-bench/SWE-bench.git

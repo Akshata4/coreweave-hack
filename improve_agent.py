@@ -107,12 +107,15 @@ def sh_json(cmd) -> dict:
     print(result.stdout[-1500:])
     if result.returncode != 0:
         print(result.stderr[-1500:], file=sys.stderr)
-    # agent_predict.py's final print is `json.dumps(result, indent=2)`, which — with
-    # indent=2 — always puts a bare "{" alone on its own line to start it. Find the
-    # LAST such line (searching backward, since earlier stdout may contain other
-    # braces from git output etc.) and parse from there to the end.
+    # agent_predict.py's final print is `json.dumps(result, indent=2)`, which puts a
+    # bare "{" alone on its own line, FLUSH LEFT (no indentation), to start it. Must
+    # check the unstripped line — a nested dict that's a LIST ELEMENT (e.g. each entry
+    # in agent_permission_denials) also gets its own indented "    {" line under
+    # indent=2 formatting, and stripping that equals "{" too, which previously matched
+    # this same search and grabbed a nested brace instead of the real top-level one
+    # whenever denials were present. Flush-left is what actually distinguishes them.
     lines = result.stdout.splitlines()
-    start = next((i for i in range(len(lines) - 1, -1, -1) if lines[i].strip() == "{"), None)
+    start = next((i for i in range(len(lines) - 1, -1, -1) if lines[i] == "{"), None)
     if start is None:
         return {}
     try:

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" role="img" aria-label="The improve loop: a coding agent produces a run, which enters the improve loop — audit, write a fix, test the fix in a sandbox, check it's safe, apply it to the real config — and the coding agent runs again, improved, closing the loop. An unsafe fix is discarded instead of applied.">
+  <style>
+    .t{ font-family: Arial, Helvetica, sans-serif; font-weight: 800; }
+    .l{ font-family: "Courier New", Courier, monospace; font-weight: 600; }
+  </style>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#857A9E"/>
+    </marker>
+    <marker id="arrsm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B4FA0"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="560" fill="#FAF8FC"/>
+
+  <!-- Coding Agent -->
+  <circle cx="450" cy="55" r="52" fill="#FFFFFF" stroke="#E6DDF3" stroke-width="2"/>
+  <text x="450" y="48" text-anchor="middle" class="t" font-size="14" fill="#382E4A">Coding</text>
+  <text x="450" y="67" text-anchor="middle" class="t" font-size="14" fill="#382E4A">Agent</text>
+
+  <!-- IMPROVE LOOP container -->
+  <rect x="40" y="210" width="820" height="270" rx="18" fill="#EDE4FA" stroke="#6B4FA0" stroke-width="2.4"/>
+  <text x="66" y="242" class="t" font-size="17" fill="#6B4FA0" letter-spacing="0.02em">IMPROVE LOOP</text>
+
+  <!-- internal steps -->
+  <!-- 1. Audit -->
+  <rect x="70" y="300" width="120" height="60" rx="10" fill="#FFFFFF" stroke="#6B4FA0" stroke-width="1.8"/>
+  <text x="130" y="335" text-anchor="middle" class="t" font-size="14" fill="#382E4A">Audit</text>
+  <line x1="190" y1="330" x2="222" y2="330" stroke="#6B4FA0" stroke-width="1.8" marker-end="url(#arrsm)"/>
+
+  <!-- incoming arrow, drawn after the container/Audit box so it's never hidden
+       behind their fill, extended to actually touch Audit's top edge -->
+  <path d="M 400 75 C 250 95, 140 210, 130 298" fill="none" stroke="#857A9E" stroke-width="2.2" marker-end="url(#arr)"/>
+  <text x="205" y="150" text-anchor="middle" class="l" font-size="13" fill="#857A9E">a run</text>
+
+  <!-- 2. Write fix -->
+  <rect x="226" y="300" width="120" height="60" rx="10" fill="#FFFFFF" stroke="#6B4FA0" stroke-width="1.8"/>
+  <text x="286" y="328" text-anchor="middle" class="t" font-size="13" fill="#382E4A">Write</text>
+  <text x="286" y="345" text-anchor="middle" class="t" font-size="13" fill="#382E4A">fix</text>
+  <line x1="346" y1="330" x2="378" y2="330" stroke="#6B4FA0" stroke-width="1.8" marker-end="url(#arrsm)"/>
+
+  <!-- 3. Sandbox test -->
+  <rect x="382" y="300" width="132" height="60" rx="10" fill="#FFFFFF" stroke="#6B4FA0" stroke-width="1.8"/>
+  <text x="448" y="328" text-anchor="middle" class="t" font-size="13" fill="#382E4A">Test in</text>
+  <text x="448" y="345" text-anchor="middle" class="t" font-size="13" fill="#382E4A">sandbox</text>
+  <line x1="514" y1="330" x2="546" y2="330" stroke="#6B4FA0" stroke-width="1.8" marker-end="url(#arrsm)"/>
+
+  <!-- 4. Safe? diamond -->
+  <polygon points="606,296 664,330 606,364 548,330" fill="#FFFFFF" stroke="#6B4FA0" stroke-width="1.8"/>
+  <text x="606" y="335" text-anchor="middle" class="l" font-size="13" fill="#382E4A">safe?</text>
+  <line x1="664" y1="330" x2="696" y2="330" stroke="#6B4FA0" stroke-width="1.8" marker-end="url(#arrsm)"/>
+  <text x="678" y="315" text-anchor="middle" class="l" font-size="10.5" fill="#6B4FA0">yes</text>
+
+  <line x1="606" y1="364" x2="606" y2="400" stroke="#B14D5E" stroke-width="1.6" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+  <text x="606" y="418" text-anchor="middle" class="l" font-size="10.5" fill="#B14D5E">no —</text>
+  <text x="606" y="432" text-anchor="middle" class="l" font-size="10.5" fill="#B14D5E">discarded</text>
+
+  <!-- 5. Apply -->
+  <rect x="700" y="300" width="120" height="60" rx="10" fill="#FBE6D6" stroke="#B4652E" stroke-width="1.8"/>
+  <text x="760" y="335" text-anchor="middle" class="t" font-size="14" fill="#B4652E">Apply</text>
+
+  <!-- return arrow, drawn last (on top) and routed entirely outside the
+       container so it's never hidden behind its fill or the step boxes -->
+  <path d="M 780 300 C 860 190, 760 70, 508 60" fill="none" stroke="#B4652E" stroke-width="2.4" marker-end="url(#arr)"/>
+  <text x="850" y="160" text-anchor="middle" class="l" font-size="13" fill="#B4652E" font-weight="600">runs again,</text>
+  <text x="850" y="177" text-anchor="middle" class="l" font-size="13" fill="#B4652E" font-weight="600">improved</text>
+
+  <text x="450" y="530" text-anchor="middle" class="l" font-size="13" fill="#857A9E" letter-spacing="0.04em">NO HUMAN NEEDED TO CLOSE THE LOOP</text>
+</svg>
