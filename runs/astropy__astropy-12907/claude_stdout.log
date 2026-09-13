@@ -1,1 +1,0 @@
-I'll leave verification to you since running commands requires approval — the fix is a one-line change in `astropy/modeling/separable.py`'s `_cstack` function.

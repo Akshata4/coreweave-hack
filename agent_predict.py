@@ -48,23 +48,29 @@ from weave.conversation import Message, Usage
 
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
-WAND_ENV_FILE = Path("/Users/ankursingh/Documents/akshata_develop/wand/.env")
+AKSHATA_ENV_FILE = ROOT / ".env"
 WEAVE_PROJECT = "swebench-claude-code-tracing"
-ALLOWED_TOOLS = "Read Edit Write Grep Glob"  # unchanged from before
+ALLOWED_TOOLS = (
+    "Read Edit Write Grep Glob "
+    "Bash(python -c *) Bash(python3 -c *) Bash(pytest *)"
+)  # Bash scoped to verification-only prefixes; anything else (rm, sudo, curl, git push,
+   # shell chaining, ...) still falls outside the allow-list and gets denied like before
 MAX_OUTPUT_CHARS = 20_000  # keep individual trace payloads sane
 
 
 def _load_akshata_wandb_key():
-    """Read WANDB_API_KEY from Akshata's wand/.env so Weave traces land in her account."""
-    if not WAND_ENV_FILE.exists():
-        sys.exit(f"expected Akshata's W&B key at {WAND_ENV_FILE}, but it's missing")
-    for line in WAND_ENV_FILE.read_text().splitlines():
+    """Read WANDB_API_KEY from this project's own .env so Weave traces land in Akshata's
+    account. Kept local to this repo (not an unrelated folder) so it can't silently go
+    stale if some other project gets logged into a different account."""
+    if not AKSHATA_ENV_FILE.exists():
+        sys.exit(f"expected Akshata's W&B key at {AKSHATA_ENV_FILE}, but it's missing")
+    for line in AKSHATA_ENV_FILE.read_text().splitlines():
         line = line.strip()
         if line.startswith("WANDB_API_KEY="):
             key = line.split("=", 1)[1].strip().strip('"').strip("'")
             os.environ["WANDB_API_KEY"] = key
             return
-    sys.exit(f"WANDB_API_KEY not found in {WAND_ENV_FILE}")
+    sys.exit(f"WANDB_API_KEY not found in {AKSHATA_ENV_FILE}")
 
 
 def sh(cmd, cwd=None, check=True):
@@ -350,6 +356,7 @@ When you are done, stop; do not summarize.
         "eval_run_id": eval_run_id,
         "patch_hash": patch_hash,
         "patch_chars": len(diff),
+        "patch_diff": diff,  # the actual fix, kept small enough here to duplicate freely
         "agent_num_turns": session.get("num_turns"),
         "agent_cost_usd": session.get("total_cost_usd"),
         "agent_permission_denials": session.get("permission_denials"),

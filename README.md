@@ -22,19 +22,20 @@ nested Calls trace and as an Agents/Conversations entry.
 
 ## Setup
 
+Dependencies (`datasets`, `weave`, and `swebench` as an editable install of `./SWE-bench`)
+are managed with [uv](https://docs.astral.sh/uv/) via `pyproject.toml`/`uv.lock`.
+
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
 git clone --depth 1 https://github.com/SWE-bench/SWE-bench.git
-cd SWE-bench && pip install -e . && cd ..
 git clone --depth 1 https://github.com/SWE-bench/swe-bench-tasks.git ./swe-bench-tasks
-pip install weave datasets
+uv sync
 claude auth login   # the claude CLI needs its own login; this session's auth isn't inherited
 ```
 
 ## Run
 
 ```bash
-python3 agent_predict.py astropy__astropy-12907
+uv run python3 agent_predict.py astropy__astropy-12907
 ```
 
 Writes `runs/<instance_id>/predictions.jsonl` and the Docker harness's verdict under

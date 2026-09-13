@@ -1,0 +1,18 @@
+[project]
+name = "coreweave-hack"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "datasets>=5.0.1",
+    "swebench",
+    "wandb>=0.30.0",
+    "weave>=0.53.9",
+]
+
+[tool.uv.workspace]
+members = [
+    "SWE-bench",
+]
+
+[tool.uv.sources]
+swebench = { workspace = true }

@@ -1,11 +1,14 @@
 .venv/
 __pycache__/
 *.pyc
+.env
 
 # Cloned upstream frameworks — not our code, re-clone per README instead
 SWE-bench/
 swe-bench-tasks/
 
-# Per-instance target-repo clones (large, and each is its own nested git repo);
-# predictions.jsonl / prompt.txt / claude_stream.jsonl next to them are kept
-runs/*/repo/
+# Regenerated experiment output — noisy on every re-run, and superseded by
+# Weave (Calls trace + Agents conversation + blue-agent feedback) as the
+# actual system of record.
+runs/
+logs/
