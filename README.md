@@ -2,6 +2,10 @@
 
 *(repo: coreweave-hack — built for the CoreWeave × Weights & Biases hackathon)*
 
+## Demo 
+
+https://www.youtube.com/watch?v=l2bjdQBmL8A
+
 **It doesn't just fix bugs. It fixes itself.**
 
 A system that watches its own execution and rewrites itself in response is, in the
